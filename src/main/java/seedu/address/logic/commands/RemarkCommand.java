@@ -1,10 +1,18 @@
 package seedu.address.logic.commands;
 
 import seedu.address.commons.core.index.Index;
+import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.logic.parser.ArgumentMultimap;
+import seedu.address.logic.parser.ArgumentTokenizer;
+import seedu.address.logic.parser.ParserUtil;
+import seedu.address.logic.parser.Prefix;
+import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 
+import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 
 
 /**
@@ -13,7 +21,7 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 public class RemarkCommand extends Command {
 
     public static final String COMMAND_WORD = "remark";
-    private static final String PREFIX_REMARK = "r/";
+    private static final Prefix PREFIX_REMARK = new Prefix("r/");
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits the remark of the person identified "
             + "by the index number used in the last person listing. "
