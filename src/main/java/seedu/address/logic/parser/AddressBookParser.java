@@ -1,16 +1,17 @@
 package seedu.address.logic.parser;
 
-import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
-import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
+import seedu.address.commons.core.LogsCenter;
+import seedu.address.commons.core.index.Index;
+import seedu.address.logic.commands.*;
+import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.Remark;
 
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import seedu.address.commons.core.LogsCenter;
-import seedu.address.commons.core.index.Index;
-import seedu.address.logic.commands.*;
-import seedu.address.logic.parser.exceptions.ParseException;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 
 /**
  * Parses user input.
@@ -71,7 +72,7 @@ public class AddressBookParser {
             return new HelpCommand();
 
         case RemarkCommand.COMMAND_WORD:
-            return new RemarkCommand(Index.fromZeroBased(0), "1");
+            return new RemarkCommand(Index.fromZeroBased(0), new Remark("placeholder"));
 
         default:
             logger.finer("This user input caused a ParseException: " + userInput);
