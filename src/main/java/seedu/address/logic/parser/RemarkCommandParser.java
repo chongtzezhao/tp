@@ -8,10 +8,9 @@ import seedu.address.model.person.Remark;
 
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_REMARK;
 
 public class RemarkCommandParser implements Parser<RemarkCommand> {
-
-    public static final Prefix PREFIX_REMARK = new Prefix("r/");
 
     /**
      * @param args of the person in the filtered person list to edit the remark
