@@ -108,8 +108,8 @@ public class PublicAddressesComposition {
     public boolean hasPublicAddress(String publicAddressString) {
         assert publicAddressString != null;
         return publicAddresses.values().stream()
-            .flatMap(Set::stream)
-            .anyMatch(publicAddress -> publicAddress.isPublicAddressStringEquals(publicAddressString));
+                .flatMap(Set::stream)
+                .anyMatch(publicAddress -> publicAddress.isPublicAddressStringEquals(publicAddressString));
     }
 
     /**
@@ -314,10 +314,21 @@ public class PublicAddressesComposition {
      * @return A string representation of the public addresses.
      */
     public String toStringIndented() {
-        return publicAddresses.entrySet().stream().map(entry -> entry.getKey() + "\n" + INDENT
-            + INDENT + entry.getValue().stream().map(publicAddress -> publicAddress.getLabel() + ": "
-                + publicAddress.getPublicAddressString())
-            .reduce((a, b) -> a + "\n" + b).orElse("")).reduce((a, b) -> a + "\n" + b).orElse("");
+        StringBuilder sb = new StringBuilder();
+        publicAddresses.forEach((network, addresses) -> {
+            sb.append(INDENT)
+                    .append(network)
+                    .append(":\n");
+            addresses.forEach(address -> {
+                sb.append(INDENT + INDENT)
+                        .append(address.getLabel())
+                        .append(":\n")
+                        .append(INDENT + INDENT + INDENT)
+                        .append(address.getPublicAddressString())
+                        .append("\n");
+            });
+        });
+        return sb.toString();
     }
 
     /**
@@ -332,14 +343,14 @@ public class PublicAddressesComposition {
     @Override
     public boolean equals(Object other) {
         return other == this
-            || (other instanceof PublicAddressesComposition
-            && publicAddresses.equals(((PublicAddressesComposition) other).publicAddresses));
+                || (other instanceof PublicAddressesComposition
+                && publicAddresses.equals(((PublicAddressesComposition) other).publicAddresses));
     }
 
     @Override
     public String toString() {
         return "PublicAddressesComposition{"
-            + publicAddresses
-            + '}';
+                + publicAddresses
+                + '}';
     }
 }
