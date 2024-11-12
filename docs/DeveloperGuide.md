@@ -13,8 +13,12 @@ pageNav: 3
 
 ## **Acknowledgements**
 
-_{ list here sources of all reused/adapted ideas, code, documentation, and third-party libraries -- include links to the
-original source as well }_
+Github Copilot/Claude/ChatGPT was used generally on a whole to either generate test cases, add comments, autocomplete
+parts of code.
+AI generated content was verified by a human.
+
+We referenced the general format of the User Guide and Developer Guide from this repo:
+https://github.com/AY2324S1-CS2103T-T11-2/tp/blob/master/docs/
 
 ---
 
@@ -180,12 +184,12 @@ How the `Logic` component works:
 
 1. When `Logic` is called upon to execute a command, it is passed to an `AddressBookParser` object which in turn creates
    a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
-1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteCommand`) which
+2. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteCommand`) which
    is executed by the `LogicManager`.
-1. The command can communicate with the `Model` when it is executed (e.g. to delete a person).<br>
+3. The command can communicate with the `Model` when it is executed (e.g. to delete a person).<br>
    Note that although this is shown as a single step in the diagram above (for simplicity), in the code it can take
    several interactions (between the command object and the `Model`) to achieve.
-1. The result of the command execution is encapsulated as a `CommandResult` object which is returned back from `Logic`.
+4. The result of the command execution is encapsulated as a `CommandResult` object which is returned back from `Logic`.
 
 Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
 
@@ -253,6 +257,48 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 ## **Implementation**
 
 This section describes some noteworthy details on how certain features are implemented.
+
+### Search Public Address feature
+
+The `searchpa` command is a feature that allows users who have a public address to quickly find the contact within the
+DLTbook which this public address is associated to. An example is
+`searchpa pa/bc1q5y5960gr9vnjlmwfst232z07surun7rey5svu9`
+
+#### Implementation
+
+The `searchpa` command is facilitated by `SearchPublicAddressCommand`,`SearchPublicAddressCommandParser` and
+`PublicAddressComposition`. It uses `Model#getFilteredPersonList()` to get the list of filtered persons currently
+displayed and searches each of the persons for the presence of the public address being searched for using
+Person#hasPublicAddressStringAmongAllNetworks(String publicAddressString).
+
+#### How to execute the command
+
+1. The `searchpa` command is executed by typing `searchpa` followed by the public address to be searched for.
+2. The `AddressBookParser` class creates a new `SearchPublicAddressCommandParser` object.
+3. If there is no string of Public Address entered or more than 1 string of public address entered, a `ParseException
+   will be thrown.
+4. The `SearchPublicAddressCommandParser` class creates a new `SearchPublicAddressCommand` object with the parsed public
+   address string.
+5. The `SearchPublicAddressCommand` object calls the PublicAddressComposition#validatePublicAddress(String
+   publicAddressString) method to validate the public address string, and throws a `ParseException` if the public
+   address is invalid.
+6. The `SearchPublicAddressCommand` object then calls the `Model#getFilteredPersonList()` method
+   to get the list of filtered persons currently displayed.
+7. The `SearchPublicAddressCommand` object then searches each of the persons for the presence of the public address
+   being
+   searched for using `Person#hasPublicAddressStringAmongAllNetworks(String publicAddressString)`.
+8. `Person#hasPublicAddressStringAmongAllNetworks(String publicAddressString)` calls
+   `PublicAddressComposition#hasPublicAddress(String publicAddressString)`.
+9. The boolean value returned from `PublicAddressComposition#hasPublicAddress(String publicAddressString)` is then used
+   to
+   create a `List<Persons>` object that have the public address being searched for in the `SearchPublicAddressCommand`
+   object.
+10. The `SearchPublicAddressCommand` object then calls the
+    `SearchPublicAddressCommand#generateResult(List<Person> personsWithPublicAddressMatch)` to generate the success or
+    error message.
+    The sequence diagram below shows how the `searchpa` command works from steps 1-10.
+
+<puml src="diagrams/SearchPublicAddressSequenceDiagram.puml" />
 
 ### \[Proposed\] Undo/redo feature
 
@@ -384,41 +430,6 @@ _{Explain here how the data archiving feature will be implemented}_
 
 ---
 
-## **Appendix: Instructions for Manual Testing**
-
-Given below are instructions to test the app manually.
-
-<box type="info" seamless>
-
-**Note:** These instructions only provide a starting point for testers to work on;
-testers are expected to do more _exploratory_ testing.
-
-</box>
-
-1. First, launch the app by entering the folder and running `java -jar DLTbook.jar`.
-
-2. The app should start and display the main window with a list of sample contacts.
-
-3. Try adding a public address to a user by entering
-   `add 1 c/BTC l/default pa/bc1q5y5960gr9vnjlmwfst232z07surun7rey5svu9`.
-
-4. Try retrieving the public address by entering `retrievepa l/default` or `retrievepa l/default c/BTC`.
-
-5. Try editing the public address by entering `editpa 1 c/BTC l/default pa/bc1q5y5960gr9vnjlmwfst232z07surun7rey5svu9`.
-
-6. Try searching for the public address by entering `searchpa pa/bc1q5y5960gr9vnjlmwfst232z07surun7rey5svu9`.
-
-7. Try deleting the public address by entering `deletepa 1 c/BTC` or `deletepa 1 c/BTC l/default`.
-
-8. Try filtering the persons with public addresses network by entering `filter c/BTC`.
-
-<box type = "success">
-
-Good job!🥳 You have tested the basic functionalities of the app. We recommend you to explore the app further to test
-more functionalities.
-
-</box>
-
 ## **Appendix: Requirements**
 
 ### Product scope
@@ -433,7 +444,10 @@ more functionalities.
 - is a user of DLTs
 - has many contacts in address book with many DLT public addresses to manage
 
-**Value proposition**: manage DLT public address of contacts faster than a typical mouse/GUI driven app
+**Value proposition**: 
+
+- Manage DLT public address of contacts faster than a typical mouse/GUI driven app
+- Easy storage and access of public addresses of contacts
 
 ### User stories
 
@@ -444,7 +458,8 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *`  | user                                       | add a Crypto public address to a user's contacts                                           | easily get their public address                                        |
 | `* * *`  | user                                       | easily select the public address of each user according to the blockchain network          | manage addresses by network                                            |
 | `* * *`  | user                                       | specify which blockchain network each address belongs to (e.g., Bitcoin, Ethereum, Solana) | organize my addresses by network                                       |
-| `* * *`  | user                                       | search for addresses in my address book by name, alias, or address string                  | quickly find the information I need                                    |
+| `* * *`  | user                                       | retrieve addresses in my address book by wallet label, network and contact's name          | quickly find the information I need                                    |
+| `* * *`  | user                                       | search for addresses in my address book by the public address value                        | verify that the address I am sending to is of the intended recipient   |
 | `* * *`  | user                                       | edit existing address entries                                                              | update information or correct mistakes                                 |
 | `* * *`  | user                                       | delete addresses from my address book                                                      | remove addresses I no longer need                                      |
 | `* * *`  | user                                       | copy an address to my clipboard with a single click                                        | easily paste it elsewhere                                              |
@@ -458,11 +473,9 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | user                                       | hide private contact details                                                               | minimize chance of someone else seeing them by accident                |
 | `*`      | user with many persons in the address book | sort persons by name                                                                       | locate a person easily                                                 |
 
-_{More to be added}_
-
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified
+(For all use cases below, the **System** is the `DLTbook` and the **Actor** is the `user`, unless specified
 otherwise)
 
 **Use case: Filter persons by network**
@@ -470,23 +483,21 @@ otherwise)
 **MSS**
 
 1. User requests to filter persons by a specific network.
-2. AddressBook shows a list of persons with the specified network.
+2. DLTbook shows a list of persons with the specified network.
 
 **Extensions**
 
 - 2a. No persons have the specified network.
-    - 2a1. AddressBook shows an error message.
+    - 2a1. DLTbook shows an error message.
 
 **Use case: Delete a person**
 
 **MSS**
 
 1. User requests to list persons
-2. AddressBook shows a list of persons
+2. DLTbook shows a list of persons
 3. User requests to delete a specific person in the list
-4. AddressBook deletes the person
-
-~~~~
+4. DLTbook deletes the person
 
 **Extensions**
 
@@ -496,26 +507,178 @@ otherwise)
 
 - 3a. The given index is invalid.
 
-  - 3a1. AddressBook shows an error message.
+  - 3a1. DLTbook shows an error message.
 
     Use case resumes at step 2.
 
-_{More to be added}_
+**Use case: Edit a public address**
+
+**Preconditions**: List of contacts currently displayed
+
+**MSS**
+1. User requests to edit public address, specifying details of the public address to edit and the new public address.
+2. DLTbook updates the public address to the new value.
+
+Use case ends.
+
+**Extensions**
+
+* 1a. DLTbook detects an error in the entered command / data.
+
+    * 1a1. DLTbook informs user of error.
+
+  Use case ends.
+
+* 1b. DLTbook cannot find a matching public address based on user's provided details.
+
+    * 1b1. DLTbook informs user that there is no matching public address.
+
+  Use case ends.
+
+**Use case: Retrieve public addresses based on label**
+
+**MSS**
+1. User requests to retrieve public address, specifying (part of) the label of public addresses to retrieve.
+2. DLTbook shows a list of public addresses whose labels includes the provided label.
+
+Use case ends.
+
+**Extensions**
+
+* 1a. DLTbook detects an error in the entered command / data.
+
+    * 1a1. DLTbook informs user of error.
+
+  Use case ends.
+
+* 1b. DLTbook cannot find matching public addresses based on user's provided details.
+
+    * 1b1. DLTbook informs user that there ate no matching public addresses.
+
+  Use case ends.
+
+**Use case: Retrieve public addresses based on label and network type**
+
+**MSS**
+1. User requests to retrieve public address, specifying (part of) the label and network of public addresses to retrieve.
+2. DLTbook shows a list of public addresses whose labels includes the provided label, and network type matches the provided network.
+
+Use case ends.
+
+**Extensions**
+
+* 1a. DLTbook detects an error in the entered command / data.
+
+    * 1a1. DLTbook informs user of error.
+
+  Use case ends.
+
+* 1b. DLTbook cannot find matching public addresses based on user's provided details.
+
+    * 1b1. DLTbook informs user that there ate no matching public addresses.
+
+  Use case ends.
+
+**Use case: Retrieve public addresses based on label and contact's name**
+
+**MSS**
+1. User requests to retrieve public address, specifying (part of) the label and (part of) the contact's name.
+2. DLTbook shows a list of public addresses whose labels includes the provided label, and contact's name includes the provided name.
+
+Use case ends.
+
+**Extensions**
+
+* 1a. DLTbook detects an error in the entered command / data.
+
+    * 1a1. DLTbook informs user of error.
+
+  Use case ends.
+
+* 1b. DLTbook cannot find matching public addresses based on user's provided details.
+
+    * 1b1. DLTbook informs user that there ate no matching public addresses.
+
+  Use case ends.
+
+**Use case: Retrieve public addresses based on label, network type and contact's name**
+
+**MSS**
+1. User requests to retrieve public address, specifying (part of) the label, network of public addresses to retrieve and (part of) the contact's name.
+2. DLTbook shows a list of public addresses whose labels includes the provided label, network type matches the provided network and contact's name includes the provided name.
+
+Use case ends.
+
+**Extensions**
+
+* 1a. DLTbook detects an error in the entered command / data.
+
+    * 1a1. DLTbook informs user of error.
+
+  Use case ends.
+
+* 1b. DLTbook cannot find matching public addresses based on user's provided details.
+
+    * 1b1. DLTbook informs user that there ate no matching public addresses.
+
+  Use case ends.
+
+
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `17` or above installed.
-2.  Should be able to hold up to 1000 persons without a noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
+1. Should work on any _mainstream OS_ as long as it has Java `17` or above installed.
+2. Should be able to hold up to 1000 persons without a noticeable sluggishness in performance for typical usage.
+3. A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be
+   able to accomplish most of the tasks faster using commands than using the mouse.
 
-_{More to be added}_
 
 ### Glossary
 
-- **Mainstream OS**: Windows, Linux, Unix, MacOS
-- **Private contact detail**: A contact detail that is not meant to be shared with others
+| Term                               | Definition                                                                                                                                                                                           |
+|------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Blockchain**                     | A system in which a record of transactions made in bitcoin or another cryptocurrency is maintained across several computers that are linked in a peer-to-peer network.                               |
+| **Blockchain Network/DLT Network** | A decentralized digital ledger that records transactions across multiple computers. Acts like a currency, but it's digital and secure. (e.g., Bitcoin, Ethereum, Solana).                            |
+| **BTC**                            | Bitcoin, a decentralized digital currency without a central bank or single administrator that can be sent from user to user on the peer-to-peer bitcoin network without the need for intermediaries. |
+| **CLI**                            | Command Line Interface, a text-based interface used to interact with software and operating systems by typing commands.                                                                              |
+| **DLT**                            | Distributed Ledger Technology, the technological infrastructure and protocols that allow simultaneous access, validation, and record updating across a networked database.                           |
+| **ETH**                            | Ethereum, a decentralized, open-source blockchain with smart contract functionality, Ether (ETH) is the native cryptocurrency.                                                                       |
+| **GUI**                            | Graphical User Interface, allows users to interact with electronic devices through graphical icons and visual indicators.                                                                            |
+| **JAR**                            | Java Archive, a package file format typically used to aggregate many Java class files and associated metadata and resources into one file for distribution.                                          |
+| **JSON**                           | JavaScript Object Notation, a lightweight data-interchange format that is easy for humans to read and write, and easy for machines to parse and generate.                                            |
+| **Public Address**                 | A unique series of alphanumerical characters that is shared with others to receive cryptocurrencies (similar to an account number).                                                                  |
+| **SOL**                            | Solana, a high-performance blockchain supporting builders around the world creating crypto apps that scale, Solana (SOL) native cryptocurrency.                                                      |                                                                                                                                                                    |
+| **Mainstream OS**                  | Windows, Linux, Unix, MacOS                                                                                                                                                                          |
+| **Private contact detail**         | A contact detail that is not meant to be shared with others                                                                                                                                          |
+
 
 ---
+
+## **Appendix: Planned Enhancements**
+
+
+1. In the current state, if a very long name is entered, the command box will be very long, text wrapping should be
+   implemented.
+
+2. In the current state, for the searchpa command if users enter extraneous inputs according to user guide, Dltbook will
+   serve a error message like but this error message does not accurately reflect the error caused by extraneous input.
+   for example if the command "searchpa pa/bc1q5y5960gr9vnjlmwfst232z07surun7rey5svu9 w/main" is entered but the prefix
+   w/
+   is not recognized globally, a error of "Public Address for length BTC/ETH/SOL should be less than 44 characters"
+   occurs.
+   of if the command "searchpa pa/bc1q5y5960gr9vnjlmwfst232z07surun7rey5sv n/s" is entered, the error message of "Public
+   Address contains only alphanumeric characters" occurs.
+
+3. In the current state, for the add/edit command, only alphanumeric character names are allowed. We shall add support
+   for more with special characters in the future.
+
+4. In the current state, for the add/edit command, contacts in DLTbook have no support for phone numbers with symbols
+   such as "+"
+   and "-" in the phone number field which may be useful for saving international phone numbers
+
+5. In the current state, for the add/edit command, Duplicates allowed The email field of contacts in DLTbook have no
+   restrictions and can be duplicated across contacts.
+
 
 ## **Appendix: Instructions for manual testing**
 
@@ -532,40 +695,74 @@ testers are expected to do more _exploratory_ testing.
 
 1. Initial launch
 
-   1. Download the jar file and copy into an empty folder
+    1. Download the jar file and copy into an empty folder
 
-   1. Double-click the jar file Expected: Shows the GUI with a set of sample contacts. The window size may not be optimum.
+   2. Open a terminal, and navigate to the folder you put the JAR file in.
 
-1. Saving window preferences
+   3. Launch the app by using the command `java -jar DLTbook.jar` in your terminal.
+   Expected: Shows the GUI with a set of sample applicants and interviews. The window size may not be optimum.
 
-   1. Resize the window to an optimum size. Move the window to a different location. Close the window.
+2. Saving window preferences
 
-   1. Re-launch the app by double-clicking the jar file.<br>
+    1. Resize the window to an optimum size. Move the window to a different location. Close the window.
+
+   2. Re-launch the app by using the command `java -jar DLTbook.jar` in your terminal.<br>
       Expected: The most recent window size and location is retained.
 
-1. _{ more test cases …​ }_
+### Adding a Public Address
 
-### Deleting a person
+1. Prerequisites: Persons exist in the list.
 
-1. Deleting a person while all persons are being shown
+2. Try `addpa 1 c/ETH l/default pa/0x0b1c9e1fb5e13c797c7f0134641810e9a7ca14d2`<br>
+   Expected: Public Address is added to the person. Details of the added public address shown in the status message. The list is updated with the new public address inside contacts at INDEX 1.
 
-   1. Prerequisites: List all persons using the `list` command. Multiple persons in the list.
+### Retrieving a Public Address
 
-   1. Test case: `delete 1`<br>
-      Expected: First contact is deleted from the list. Details of the deleted contact shown in the status message. Timestamp in the status bar is updated.
+1. Prerequisites: Persons and its relevant public addresses exist in the list.
 
-   1. Test case: `delete 0`<br>
-      Expected: No person is deleted. Error details shown in the status message. Status bar remains the same.
+2. Try `retrievepa l/default`<br>
+   Expected: Retrieves all public addresses with labels containing "default" for all contacts and networks.
 
-   1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
-      Expected: Similar to previous.
+3. Try `retrievepa l/default n/Alex`<br>
+     Expected:  Retrieves all public addresses with labels containing "default" for contacts whose names contain "Alex".
 
-1. _{ more test cases …​ }_
+4. Try `retrievepa l/main c/btc n/bernice`<br>
+        Expected:  Retrieves all BTC public addresses with labels containing "main" for contacts whose names contain "bernice".
 
-### Saving data
+### Editing a Public Address
 
-1. Dealing with missing/corrupted data files
+1. Prerequisites: Persons and its relevant public addresses and labels exist in the list.
 
-   1. _{explain how to simulate a missing/corrupted file, and the expected behavior}_
+2. Try `editpa 1 c/BTC l/Main wallet pa/bc1phkt4pgl42lad3mm2srne73y8a7zgam3cumrzmc`<br>
+    Expected: Edits the contact at index 1's BTC public address labelled as "Main wallet" to the new value bc1phkt4pgl42lad3mm2srne73y8a7zgam3cumrzmc.<br>
 
-1. _{ more test cases …​ }_
+### Search for a Public Address
+
+1. Prerequisites: Persons and its relevant public addresses and labels exist in the list.
+
+2. Try `searchpa pa/bc1q5y5960gr9vnjlmwfst232z07surun7rey5svu9 `<br>
+   Expected: Searches for a public address bc1q5y5960gr9vnjlmwfst232z07surun7rey5svu9 and displays the contacts and wallets to which it belongs.
+
+### Filter for contacts by network
+
+1. Prerequisites: Persons and its relevant public addresses and labels exist in the list.
+
+2. Try `filterpa c/BTC`<br>
+   Expected: Filters a list of contacts with the public addresses of BTC and displays it with their respective list number.
+
+### Deleting a Public Address
+
+1. Prerequisites: Persons and its relevant public addresses and labels exist in the list.
+
+3. Try `deletepa 1 c/BTC l/Main wallet`<br>
+   Expected: Deletes the public address of the contact at index 1 with the label "Main wallet".
+
+3. Try `deletepa 1 c/BTC`<br>
+    Expected: Deletes all the BTC public addresses of the contact at index 1.
+
+<box type = "success">
+
+Good job!🥳 You have tested the basic functionalities of the app. We recommend you to explore the app further to test
+more functionalities.
+
+</box>
